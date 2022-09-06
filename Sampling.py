@@ -574,13 +574,13 @@ def saving_batch(x_y_data, data_path, data_sample_name, num_moms, save_x = False
     full_path_ydat = os.path.join(data_path, pkl_name_ydat)
     pkl.dump(torch_y, open(full_path_ydat, 'wb'))
 
-def generate_one_ph(batch_size, max_ph_size, num_moms, data_path, data_sample_name):
-
-    sample_type_arr = np.random.randint(1, 3, batch_size)
-    x_y_moms_list = [send_to_the_right_generator(val, args.ph_size,  num_moms, data_path, data_sample_name) for val in sample_type_arr]
-    x_y_moms_list = [x_y_moms for x_y_moms in x_y_moms_list if x_y_moms]
-    x_y_moms_lists =  [compute_y_moms(x_y_moms[0],x_y_moms[1], num_moms, max_ph_size) for x_y_moms  in x_y_moms_list]
-    saving_batch(list(itertools.chain(*x_y_moms_lists)), data_path, data_sample_name, num_moms)
+# def generate_one_ph(batch_size, max_ph_size, num_moms, data_path, data_sample_name):
+#
+#     sample_type_arr = np.random.randint(1, 3, batch_size)
+#     x_y_moms_list = [send_to_the_right_generator(val, args.ph_size,  num_moms, data_path, data_sample_name) for val in sample_type_arr]
+#     x_y_moms_list = [x_y_moms for x_y_moms in x_y_moms_list if x_y_moms]
+#     x_y_moms_lists =  [compute_y_moms(x_y_moms[0],x_y_moms[1], num_moms, max_ph_size) for x_y_moms  in x_y_moms_list]
+#     saving_batch(list(itertools.chain(*x_y_moms_lists)), data_path, data_sample_name, num_moms)
 
 
     return 1
@@ -761,8 +761,6 @@ def main(args):
     print(os.getcwd())
 
 
-
-
     # if sys.platform == 'linux':
     #
     #     if os.getcwd() =='/gpfs/fs0/scratch/d/dkrass/eliransc/Deep_queue/code':
@@ -778,14 +776,9 @@ def main(args):
     data_path = args.data_path
 
 
-
-
-    # vals = manage_single_sample(200, 20)
-
-
     data_sample_name = 'batch_size_' + str(args.batch_size) + '_num_moms_' + str(
         args.num_moms) + '_num_max_size_' +'num_phases_'+str(args.ph_size_max)+'_'+ str(args.max_utilization)
-    x_vals = np.linspace(0, 1, 30)
+    # x_vals = np.linspace(0, 1, 30)
 
     # Compute ph_dists
 
@@ -794,7 +787,6 @@ def main(args):
         cur_time = int(time.time())
         seed = cur_time + len(os.listdir(data_path))+np.random.randint(1,1000)
         np.random.seed(seed)
-        print(seed)
         if ind == 0:
             manage_batch(1, args.ph_size_max, args.num_moms, data_path, data_sample_name,
                          args.max_utilization)
@@ -806,11 +798,9 @@ def main(args):
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_examples', type=int, help='number of ph folders', default=1)
-    parser.add_argument('--max_num_groups', type=int, help='mixture erlang or general', default=2)
     parser.add_argument('--num_moms', type=int, help='number of ph folders', default=20)
     parser.add_argument('--batch_size', type=int, help='number of ph examples in one file', default=1)
     parser.add_argument('--ph_size_max', type=int, help='number of ph folders', default = 1000)
-    parser.add_argument('--ph_size', type=int, help='ph_size', default=1000)
     parser.add_argument('--data_path', type=str, help='where to save the file', default=r'C:\Users\user\workspace\data\deep_gg1')
     parser.add_argument('--max_utilization', type=float, help='What is the largest possible utilization', default = 0.999)
     args = parser.parse_args(argv)
