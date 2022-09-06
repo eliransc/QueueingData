@@ -4,7 +4,7 @@ The following package includes:
 
 1. Sampling code of a G/G/1 queue.
 2. The Neural network prediciton model of a G/G/1 queue.
-3. G/G/1 data set.
+
 
 # Sampling code of a G/G/1 queue:
 This part contains a code of a G/G/1 code, where one can use our samlping algorithm for the inter-arrival and service time distributions and then compute the true steady-state probabilites of the number of customers in the system. 
@@ -21,7 +21,7 @@ The user may control the following cinfigurations:
 In this part, the user is required to give 5 inter-arrival and service time moments and the program's output is a 500 size vector of the steady-state probability. Whereas, the i^th location represent the number of customers n the system under steady-state. 
 The program also plots a bar chart of the disitrbution (outputs only the first 30 values, but the user can change it).
 
-# Data sets
+
 
 
 
