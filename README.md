@@ -18,6 +18,10 @@ The user may control the following cinfigurations:
 --max_utilization: the maximum utilization of the G/G/1 queue.
 
 # Neural network prediciton model:
+In this part, the user is required to give 5 inter-arrival and service time moments and the program's output is a 500 size vector of the steady-state probability. Whereas, the i^th location represent the number of customers n the system under steady-state. 
+The program also plots a bar chart of the disitrbution (outputs only the first 30 values, but the user can change it).
+
+# Data sets
 
 
 
