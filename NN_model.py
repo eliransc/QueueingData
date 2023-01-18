@@ -36,6 +36,9 @@ import torch.optim as optim
 import argparse
 
 
+num_moms_arrive = 5
+num_moms_service = 5
+
 def compute_sum_error(valid_dl, model, return_vector, max_err=0.05, display_bad_images=False):
     with torch.no_grad():
         bad_cases = {}
@@ -91,6 +94,19 @@ def compute_preds(valid_dl, model, max_err=0.05, display_bad_images=False):
             pred_list.append(preds)
         return (preds_torch, yb)
 
+
+def autolabel(rects):
+    """Attach a text label above each bar in *rects*, displaying its height."""
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+
+
 def main(args):
 
 
@@ -105,29 +121,6 @@ def main(args):
     service_moments = torch.tensor([3, 5.9023, 17.2487, 67.1530, 327.2156])
 
 
-
-    # m_data_valid = pkl.load(open(r'C:\Users\user\workspace\QueueingData\GG1_data\train_moms_valid_qa.pkl', 'rb'))
-    # y_data_valid = pkl.load(open(r'C:\Users\user\workspace\QueueingData\GG1_data\train_ys_valid_qa.pkl', 'rb'))
-    #
-    # m_data_valid = m_data_valid.float()
-    # y_data_valid = y_data_valid.float()
-
-    file = os.listdir(args.model_path)[0]
-
-    split_list = file.split('_')
-
-    archi = int(split_list[9])
-    bs = int(split_list[11])
-    weight_decay = int(split_list[14])
-    num_moms_arrive = int(split_list[18])
-    num_moms_service = int(split_list[22])
-    lr_first = float(split_list[25])
-    lr_second = float(split_list[28])
-
-
-
-
-
     m = nn.Softmax(dim=1)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -138,68 +131,30 @@ def main(args):
         def __init__(self):
             super().__init__()
 
-            if archi == 1:
-                self.fc1 = nn.Linear(num_moms_arrive + num_moms_service - 1, 30)
-                self.fc2 = nn.Linear(30, 50)
-                self.fc3 = nn.Linear(50, 100)
-                self.fc4 = nn.Linear(100, 200)
-                self.fc5 = nn.Linear(200, 200)
-                self.fc6 = nn.Linear(200, 350)
-                self.fc7 = nn.Linear(350, 499)
-
-            elif archi == 2:
-
-                self.fc1 = nn.Linear(num_moms_arrive + num_moms_service - 1, 50)
-                self.fc2 = nn.Linear(50, 70)
-                self.fc3 = nn.Linear(70, 100)
-                self.fc4 = nn.Linear(100, 200)
-                self.fc5 = nn.Linear(200, 200)
-                self.fc6 = nn.Linear(200, 350)
-                self.fc7 = nn.Linear(350, 499)
-
-            else:
-
-                self.fc1 = nn.Linear(num_moms_arrive + num_moms_service - 1, 50)
-                self.fc2 = nn.Linear(50, 70)
-                self.fc3 = nn.Linear(70, 100)
-                self.fc4 = nn.Linear(100, 150)
-                self.fc5 = nn.Linear(150, 200)
-                self.fc6 = nn.Linear(200, 200)
-                self.fc7 = nn.Linear(200, 350)
-                self.fc8 = nn.Linear(350, 499)
+            self.fc1 = nn.Linear(num_moms_arrive + num_moms_service - 1, 50)
+            self.fc2 = nn.Linear(50, 70)
+            self.fc3 = nn.Linear(70, 100)
+            self.fc4 = nn.Linear(100, 150)
+            self.fc5 = nn.Linear(150, 200)
+            self.fc6 = nn.Linear(200, 200)
+            self.fc7 = nn.Linear(200, 350)
+            self.fc8 = nn.Linear(350, 499)
 
         def forward(self, x):
-            if archi == 3:
-                x = F.relu(self.fc1(x))
-                x = F.relu(self.fc2(x))
-                x = F.relu(self.fc3(x))
-                x = F.relu(self.fc4(x))
-                x = F.relu(self.fc5(x))
-                x = F.relu(self.fc6(x))
-                x = F.relu(self.fc7(x))
-                x = self.fc8(x)
-                return x
 
-            else:
-                x = F.relu(self.fc1(x))
-                x = F.relu(self.fc2(x))
-                x = F.relu(self.fc3(x))
-                x = F.relu(self.fc4(x))
-                x = F.relu(self.fc5(x))
-                x = F.relu(self.fc6(x))
-                x = self.fc7(x)
-                return x
+            x = F.relu(self.fc1(x))
+            x = F.relu(self.fc2(x))
+            x = F.relu(self.fc3(x))
+            x = F.relu(self.fc4(x))
+            x = F.relu(self.fc5(x))
+            x = F.relu(self.fc6(x))
+            x = F.relu(self.fc7(x))
+            x = self.fc8(x)
+            return x
 
-    net = Net().to(device)
-
-    curr_lr = 0.01
-
-
-
-
+    file = os.listdir(args.model_path)[0]
     net = Net().to(device)
     net.load_state_dict(torch.load(os.path.join(args.model_path, file), map_location=torch.device('cpu')))
-
 
 
     service_1_mom = service_moments[0]
@@ -215,16 +170,8 @@ def main(args):
         prob_0 = (1 - torch.sum(predictions[:, :], axis=1)).reshape(torch.sum(predictions[:, :], axis=1).shape[0], 1)
         preds = torch.concat((prob_0, predictions), axis=1)
 
-    def autolabel(rects):
-        """Attach a text label above each bar in *rects*, displaying its height."""
-        for rect in rects:
-            height = rect.get_height()
-            ax.annotate('{}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 points vertical offset
-                        textcoords="offset points",
-                        ha='center', va='bottom')
 
+    ## Number of values to present in the starionay queue lenght distribution.
     max_probs = 30
     labels = np.arange(max_probs)
     true = preds[0, :max_probs]
@@ -237,7 +184,7 @@ def main(args):
     rects2 = ax.bar(x, true, width, label='NN Prediction')
 
     # # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('PDF', fontsize=18)
+    ax.set_ylabel('PMF', fontsize=18)
     ax.set_xlabel('Number of customers in the system', fontsize=18)
     ax.set_title('Steady-state anaylsis',
                  fontsize=21)  # 'Queue-length comparison: '+ r'$rho$' + ' = ' +str(1-yb_arr[ind_, 0])[:3])
